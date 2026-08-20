@@ -1,0 +1,91 @@
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
+async function getFreeModels(apiKey) {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: { 'Authorization': 'Bearer ' + apiKey }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.data || [])
+        .filter(function(m) {
+            return m.pricing &&
+                (m.pricing.completion === '0' || m.pricing.completion === 0) &&
+                (m.pricing.prompt === '0' || m.pricing.prompt === 0);
+        })
+        .map(function(m) { return m.id; })
+        .slice(0, 10);
+}
+
+async function tryModel(model, prompt, system, apiKey) {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + apiKey,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://noxolojali14.github.io/ai-content-generator',
+            'X-Title': 'AI Content Generator'
+        },
+        body: JSON.stringify({
+            model: model,
+            messages: [
+                { role: 'system', content: system + ' Respond directly without any internal thinking or reasoning tags.' },
+                { role: 'user', content: prompt }
+            ],
+            max_tokens: 1024
+        })
+    });
+
+    const text = await res.text();
+    var data;
+    try { data = JSON.parse(text); } catch(e) { return null; }
+    if (data.error) { console.log('Model error:', model, data.error.message); return null; }
+
+    if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        var content = data.choices[0].message.content;
+        content = content.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim();
+        return content || null;
+    }
+    return null;
+}
+
+module.exports = async (req, res) => {
+    Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
+
+    if (req.method === 'OPTIONS') {
+        return res.status(204).end();
+    }
+    if (req.method !== 'POST') {
+        return res.status(405).end('Method Not Allowed');
+    }
+
+    try {
+        const { prompt, systemPrompt } = req.body;
+        const system = systemPrompt || 'You are a helpful AI content generator. Be creative, detailed, and helpful.';
+        const apiKey = process.env.OPENROUTER_API_KEY;
+
+        const models = await getFreeModels(apiKey);
+        console.log('Free models found:', models.length);
+
+        for (var i = 0; i < models.length; i++) {
+            try {
+                var result = await tryModel(models[i], prompt, system, apiKey);
+                if (result) {
+                    return res.status(200).json({ reply: result });
+                }
+            } catch (e) {
+                console.log('Model threw:', models[i], e.message);
+            }
+        }
+
+        return res.status(200).json({ reply: models.length === 0
+            ? 'Could not load model list. Please try again.'
+            : 'All AI models are currently busy. Please try again in a moment.'
+        });
+    } catch (error) {
+        return res.status(200).json({ reply: 'Error: ' + error.message });
+    }
+};

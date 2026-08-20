@@ -368,7 +368,7 @@ async function generateText(userPrompt) {
     typingDiv.innerHTML = '<span class="dot-pulse">Generating</span>';
 
     try {
-        var response = await fetch('https://ai-content-generator-noxolo-441.netlify.app/.netlify/functions/chat', {
+        var response = await fetch('https://ai-content-generator-virid.vercel.app/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: userPrompt, systemPrompt: activeType.system })
