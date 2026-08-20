@@ -1,0 +1,9 @@
+{
+  "name": "ai-content-generator",
+  "version": "1.0.0",
+  "description": "AI Content Generator - ChatGPT-like app",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
+}
+
