@@ -7,20 +7,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #1a1a2e;
-            color: #eee;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
         header {
             padding: 1rem 2rem;
-            background: #16213e;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
             text-align: center;
             border-bottom: 1px solid #0f3460;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        header h1 { font-size: 1.4rem; color: #00d4ff; }
+        header h1 { font-size: 1.5rem; color: #00d4ff; letter-spacing: 1px; }
+        header p { font-size: 0.8rem; color: #888; margin-top: 4px; }
         #chat-container {
             flex: 1;
             overflow-y: auto;
@@ -30,53 +32,88 @@
             gap: 1rem;
         }
         .message {
-            max-width: 75%;
-            padding: 0.8rem 1.2rem;
-            border-radius: 12px;
-            line-height: 1.5;
+            max-width: 80%;
+            padding: 1rem 1.2rem;
+            border-radius: 16px;
+            line-height: 1.6;
             white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+            animation: fadeIn 0.3s ease;
         }
-        .user { align-self: flex-end; background: #0f3460; }
-        .ai { align-self: flex-start; background: #1a1a3e; border: 1px solid #333; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #0f3460, #1a4a8a);
+            border-bottom-right-radius: 4px;
+        }
+        .ai {
+            align-self: flex-start;
+            background: #1e1e30;
+            border: 1px solid #2a2a40;
+            border-bottom-left-radius: 4px;
+        }
         #input-area {
             display: flex;
             padding: 1rem;
             gap: 0.5rem;
-            background: #16213e;
+            background: #1a1a2e;
             border-top: 1px solid #0f3460;
         }
         #prompt {
             flex: 1;
-            padding: 0.8rem 1rem;
-            border: 1px solid #0f3460;
-            border-radius: 8px;
-            background: #1a1a2e;
-            color: #eee;
+            padding: 0.9rem 1rem;
+            border: 1px solid #2a2a40;
+            border-radius: 12px;
+            background: #0f0f1a;
+            color: #e0e0e0;
             font-size: 1rem;
+            font-family: inherit;
             outline: none;
             resize: none;
+            transition: border-color 0.2s;
         }
         #prompt:focus { border-color: #00d4ff; }
+        #prompt::placeholder { color: #555; }
         button {
-            padding: 0.8rem 1.5rem;
-            background: #00d4ff;
-            color: #1a1a2e;
+            padding: 0.9rem 1.8rem;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #0f0f1a;
             border: none;
-            border-radius: 8px;
-            font-weight: bold;
+            border-radius: 12px;
+            font-weight: 700;
             cursor: pointer;
             font-size: 1rem;
+            transition: all 0.2s;
         }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .typing { opacity: 0.6; font-style: italic; }
+        button:hover { transform: scale(1.05); }
+        button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .typing { color: #00d4ff; }
+        .dot-pulse { display: inline-block; }
+        .dot-pulse::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        #chat-container::-webkit-scrollbar { width: 6px; }
+        #chat-container::-webkit-scrollbar-track { background: transparent; }
+        #chat-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     </style>
 </head>
 <body>
     <header>
-        <h1>✨ AI Content Generator</h1>
+        <h1>&#10024; AI Content Generator</h1>
+        <p>Powered by AI &mdash; ask anything</p>
     </header>
     <div id="chat-container">
-        <div class="message ai">Hello! I'm your AI content generator. Ask me anything — I can write stories, emails, code, poems, essays, and more. What would you like me to create?</div>
+        <div class="message ai">Hello! I'm your AI assistant. I can write stories, emails, code, poems, essays, and much more. What would you like me to create?</div>
     </div>
     <div id="input-area">
         <textarea id="prompt" rows="1" placeholder="Type your prompt here..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generate()}"></textarea>
@@ -84,40 +121,42 @@
     </div>
 
     <script>
-        const chatContainer = document.getElementById('chat-container');
-        const promptInput = document.getElementById('prompt');
-        const sendBtn = document.getElementById('send-btn');
+        var chatContainer = document.getElementById('chat-container');
+        var promptInput = document.getElementById('prompt');
+        var sendBtn = document.getElementById('send-btn');
 
-        function addMessage(text, role) {
-            const div = document.createElement('div');
-            div.className = `message ${role}`;
-            div.textContent = text;
+        function addMessage(text, role, isHtml) {
+            var div = document.createElement('div');
+            div.className = 'message ' + role;
+            if (isHtml) { div.innerHTML = text; } else { div.textContent = text; }
             chatContainer.appendChild(div);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return div;
         }
 
         async function generate() {
-            const prompt = promptInput.value.trim();
+            var prompt = promptInput.value.trim();
             if (!prompt) return;
 
             addMessage(prompt, 'user');
             promptInput.value = '';
             sendBtn.disabled = true;
 
-            const typingDiv = addMessage('Generating...', 'ai typing');
+            var typingDiv = addMessage('<span class="dot-pulse">Thinking</span>', 'ai typing', true);
 
             try {
-                const response = await fetch('/.netlify/functions/chat', {
+                var response = await fetch('/.netlify/functions/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt })
+                    body: JSON.stringify({ prompt: prompt })
                 });
 
-                const data = await response.json();
+                var data = await response.json();
+                typingDiv.innerHTML = '';
                 typingDiv.textContent = data.reply || 'Sorry, something went wrong.';
                 typingDiv.classList.remove('typing');
             } catch (err) {
+                typingDiv.innerHTML = '';
                 typingDiv.textContent = 'Error: Could not reach the AI service. Please try again.';
                 typingDiv.classList.remove('typing');
             }
@@ -128,4 +167,3 @@
     </script>
 </body>
 </html>
-
