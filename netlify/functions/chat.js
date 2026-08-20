@@ -12,12 +12,15 @@ async function getFreeModels(apiKey) {
     if (!res.ok) return [];
     const data = await res.json();
     return (data.data || [])
-        .filter(m => m.pricing && m.pricing.completion === '0' && m.pricing.prompt === '0')
-        .map(m => m.id)
+        .filter(function(m) {
+            return m.pricing && (m.pricing.completion === '0' || m.pricing.completion === 0) &&
+                               (m.pricing.prompt === '0' || m.pricing.prompt === 0);
+        })
+        .map(function(m) { return m.id; })
         .slice(0, 10);
 }
 
-async function tryModel(model, prompt, apiKey) {
+async function tryModel(model, prompt, system, apiKey) {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -67,7 +70,7 @@ exports.handler = async (event) => {
 
         for (var i = 0; i < models.length; i++) {
             try {
-                var result = await tryModel(models[i], prompt, apiKey);
+                var result = await tryModel(models[i], prompt, system, apiKey);
                 if (result) {
                     return {
                         statusCode: 200,
