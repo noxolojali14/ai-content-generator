@@ -8,21 +8,98 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0f0f1a;
+            background: #0a0a14;
             color: #e0e0e0;
-            height: 100vh;
+            min-height: 100vh;
+        }
+
+        /* ── SELECTION SCREEN ── */
+        #selection-screen {
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        header {
-            padding: 1rem 2rem;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+        .hero {
             text-align: center;
-            border-bottom: 1px solid #0f3460;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            padding: 3rem 2rem 2rem;
+            background: linear-gradient(180deg, #0f0f1e 0%, #0a0a14 100%);
         }
-        header h1 { font-size: 1.5rem; color: #00d4ff; letter-spacing: 1px; }
-        header p { font-size: 0.8rem; color: #888; margin-top: 4px; }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00d4ff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.6rem;
+        }
+        .hero p { color: #888; font-size: 1rem; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.2rem;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .card {
+            background: #12121f;
+            border: 1px solid #1e1e35;
+            border-radius: 16px;
+            padding: 1.6rem 1.4rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+        .card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0,212,255,0.15);
+            transform: translateY(-3px);
+        }
+        .card-icon { font-size: 2rem; }
+        .card-title { font-size: 1.05rem; font-weight: 700; color: #f0f0f0; }
+        .card-desc { font-size: 0.82rem; color: #666; line-height: 1.4; }
+
+        /* ── GENERATOR SCREEN ── */
+        #generator-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .gen-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.9rem 1.5rem;
+            background: #12121f;
+            border-bottom: 1px solid #1e1e35;
+            flex-shrink: 0;
+        }
+        .back-btn {
+            background: none;
+            border: 1px solid #2a2a40;
+            color: #aaa;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .back-btn:hover { border-color: #00d4ff; color: #00d4ff; transform: none; }
+        .gen-type-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #e0e0e0;
+        }
+        .gen-type-label span { font-size: 1.3rem; }
+
         #chat-container {
             flex: 1;
             overflow-y: auto;
@@ -32,17 +109,17 @@
             gap: 1rem;
         }
         .message {
-            max-width: 80%;
+            max-width: 82%;
             padding: 1rem 1.2rem;
             border-radius: 16px;
-            line-height: 1.6;
+            line-height: 1.65;
             white-space: pre-wrap;
             word-wrap: break-word;
-            font-size: 0.95rem;
+            font-size: 0.93rem;
             animation: fadeIn 0.3s ease;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .user {
@@ -52,47 +129,56 @@
         }
         .ai {
             align-self: flex-start;
-            background: #1e1e30;
-            border: 1px solid #2a2a40;
+            background: #12121f;
+            border: 1px solid #1e1e35;
             border-bottom-left-radius: 4px;
         }
+        .ai img {
+            max-width: 100%;
+            border-radius: 10px;
+            display: block;
+            margin-top: 0.4rem;
+        }
+        .ai img.loading { opacity: 0.4; }
+
         #input-area {
             display: flex;
             padding: 1rem;
-            gap: 0.5rem;
-            background: #1a1a2e;
-            border-top: 1px solid #0f3460;
+            gap: 0.6rem;
+            background: #12121f;
+            border-top: 1px solid #1e1e35;
+            flex-shrink: 0;
         }
         #prompt {
             flex: 1;
-            padding: 0.9rem 1rem;
+            padding: 0.85rem 1rem;
             border: 1px solid #2a2a40;
             border-radius: 12px;
-            background: #0f0f1a;
+            background: #0a0a14;
             color: #e0e0e0;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-family: inherit;
             outline: none;
             resize: none;
             transition: border-color 0.2s;
         }
         #prompt:focus { border-color: #00d4ff; }
-        #prompt::placeholder { color: #555; }
-        button {
-            padding: 0.9rem 1.8rem;
+        #prompt::placeholder { color: #444; }
+        #send-btn {
+            padding: 0.85rem 1.6rem;
             background: linear-gradient(135deg, #00d4ff, #0099cc);
-            color: #0f0f1a;
+            color: #0a0a14;
             border: none;
             border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: all 0.2s;
+            white-space: nowrap;
         }
-        button:hover { transform: scale(1.05); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .typing { color: #00d4ff; }
-        .dot-pulse { display: inline-block; }
+        #send-btn:hover { opacity: 0.9; transform: scale(1.03); }
+        #send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
         .dot-pulse::after {
             content: '...';
             animation: dots 1.5s infinite;
@@ -102,68 +188,228 @@
             40% { content: '..'; }
             60%, 100% { content: '...'; }
         }
-        #chat-container::-webkit-scrollbar { width: 6px; }
+        #chat-container::-webkit-scrollbar { width: 5px; }
         #chat-container::-webkit-scrollbar-track { background: transparent; }
-        #chat-container::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        #chat-container::-webkit-scrollbar-thumb { background: #222; border-radius: 3px; }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.6rem; }
+            .cards-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; padding: 1rem; }
+            .card { padding: 1.2rem 1rem; }
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>&#10024; AI Content Generator</h1>
-        <p>Powered by AI &mdash; ask anything</p>
-    </header>
-    <div id="chat-container">
-        <div class="message ai">Hello! I'm your AI assistant. I can write stories, emails, code, poems, essays, and much more. What would you like me to create?</div>
+
+<!-- SCREEN 1: Content Type Selection -->
+<div id="selection-screen">
+    <div class="hero">
+        <h1>✦ AI Content Generator</h1>
+        <p>Choose what you want to create</p>
     </div>
+    <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<!-- SCREEN 2: Generator -->
+<div id="generator-screen">
+    <div class="gen-header">
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <div class="gen-type-label">
+            <span id="active-icon"></span>
+            <span id="active-title"></span>
+        </div>
+    </div>
+    <div id="chat-container"></div>
     <div id="input-area">
-        <textarea id="prompt" rows="1" placeholder="Type your prompt here..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generate()}"></textarea>
-        <button id="send-btn" onclick="generate()">Send</button>
+        <textarea id="prompt" rows="1" id="prompt" placeholder="Type your prompt..."></textarea>
+        <button id="send-btn" onclick="generate()">Generate</button>
     </div>
+</div>
 
-    <script>
-        var chatContainer = document.getElementById('chat-container');
-        var promptInput = document.getElementById('prompt');
-        var sendBtn = document.getElementById('send-btn');
+<script>
+var CONTENT_TYPES = [
+    {
+        id: 'blog',
+        icon: '📝',
+        title: 'Blog Post',
+        desc: 'Engaging articles & long-form content',
+        placeholder: 'e.g. Write a blog post about the future of AI in healthcare...',
+        welcome: "I'll write compelling blog posts for you. Give me a topic, target audience, or title and I'll create a full structured article.",
+        system: 'You are an expert blog writer. Write well-structured, engaging blog posts with a compelling introduction, clear subheadings, and a strong conclusion. Use a conversational yet authoritative tone. Include relevant examples and actionable insights. Format with clear sections.'
+    },
+    {
+        id: 'email',
+        icon: '📧',
+        title: 'Professional Email',
+        desc: 'Clear, concise business emails',
+        placeholder: 'e.g. Write a follow-up email after a job interview at Google...',
+        welcome: "I'll write professional emails for any situation — job applications, follow-ups, pitches, complaints, and more. Describe what you need.",
+        system: 'You are an expert business email writer. Write clear, professional, and concise emails. Always include: Subject line, greeting, body paragraphs, and a sign-off. Match the tone to the context — formal for corporate, warm for networking. Keep emails focused and action-oriented.'
+    },
+    {
+        id: 'social',
+        icon: '📱',
+        title: 'Social Media Post',
+        desc: 'Viral posts for any platform',
+        placeholder: 'e.g. An Instagram post for a new coffee shop opening in Cape Town...',
+        welcome: "I'll create scroll-stopping social media content for Instagram, LinkedIn, Twitter/X, TikTok, and more. Tell me what you're promoting and which platform.",
+        system: 'You are a social media content expert. Create engaging, platform-optimized posts with strong hooks, relevant emojis, and hashtags. Keep content concise, relatable, and shareable. Tailor tone and format to the specified platform. Always provide 2-3 post variations.'
+    },
+    {
+        id: 'ad',
+        icon: '📢',
+        title: 'Advertisement',
+        desc: 'Compelling copy that converts',
+        placeholder: 'e.g. A Facebook ad for a fitness app targeting busy professionals...',
+        welcome: "I'll write high-converting ad copy for Facebook, Google, billboards, radio, and more. Tell me the product, target audience, and platform.",
+        system: 'You are a world-class copywriter specializing in high-converting advertising. Write compelling ad copy with a powerful headline, benefit-focused body, and clear call-to-action. Use persuasive techniques: social proof, urgency, emotional triggers. Provide headline options and body copy variants.'
+    },
+    {
+        id: 'product',
+        icon: '🛍️',
+        title: 'Product Description',
+        desc: 'Descriptions that sell',
+        placeholder: 'e.g. Write a description for wireless noise-cancelling headphones under $100...',
+        welcome: "I'll write persuasive product descriptions that turn browsers into buyers. Tell me about your product — features, target customer, and where it'll be listed.",
+        system: 'You are an expert e-commerce copywriter. Write compelling product descriptions that highlight key features and benefits, address customer pain points, and drive purchase decisions. Use sensory language, format features as bullet points, and close with a persuasive call-to-action. Naturally weave in SEO keywords.'
+    },
+    {
+        id: 'code',
+        icon: '💻',
+        title: 'Code',
+        desc: 'Code snippets in any language',
+        placeholder: 'e.g. Write a Python function that fetches weather data from an API...',
+        welcome: "I'll write clean, working code in any programming language. Describe what you need — function, class, full script, or explain a concept.",
+        system: 'You are an expert software engineer. Write clean, efficient, well-commented code following best practices. Add brief inline comments for non-obvious logic. If the language is unspecified, choose the most appropriate one. Include error handling and usage examples where helpful.'
+    },
+    {
+        id: 'image',
+        icon: '🎨',
+        title: 'AI Image',
+        desc: 'Generate images from text',
+        placeholder: 'e.g. A futuristic cityscape at sunset with flying cars and neon lights...',
+        welcome: "I'll generate images from your text descriptions. Be as descriptive as possible — include style, mood, colors, and subject for the best results.",
+        system: ''
+    }
+];
 
-        function addMessage(text, role, isHtml) {
-            var div = document.createElement('div');
-            div.className = 'message ' + role;
-            if (isHtml) { div.innerHTML = text; } else { div.textContent = text; }
-            chatContainer.appendChild(div);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            return div;
-        }
+var activeType = null;
+var chatContainer = document.getElementById('chat-container');
+var promptInput = document.getElementById('prompt');
+var sendBtn = document.getElementById('send-btn');
 
-        async function generate() {
-            var prompt = promptInput.value.trim();
-            if (!prompt) return;
+// Build selection cards
+var grid = document.getElementById('cards-grid');
+CONTENT_TYPES.forEach(function(type) {
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+        '<div class="card-icon">' + type.icon + '</div>' +
+        '<div class="card-title">' + type.title + '</div>' +
+        '<div class="card-desc">' + type.desc + '</div>';
+    card.onclick = function() { selectType(type); };
+    grid.appendChild(card);
+});
 
-            addMessage(prompt, 'user');
-            promptInput.value = '';
-            sendBtn.disabled = true;
+function selectType(type) {
+    activeType = type;
+    document.getElementById('selection-screen').style.display = 'none';
+    var genScreen = document.getElementById('generator-screen');
+    genScreen.style.display = 'flex';
+    document.getElementById('active-icon').textContent = type.icon;
+    document.getElementById('active-title').textContent = type.title;
+    promptInput.placeholder = type.placeholder;
 
-            var typingDiv = addMessage('<span class="dot-pulse">Thinking</span>', 'ai typing', true);
+    chatContainer.innerHTML = '';
+    addMessage(type.welcome, 'ai');
+    promptInput.focus();
+}
 
-            try {
-                var response = await fetch('https://ai-content-generator-noxolo-441.netlify.app/.netlify/functions/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt: prompt })
-                });
+function goBack() {
+    document.getElementById('generator-screen').style.display = 'none';
+    document.getElementById('selection-screen').style.display = 'flex';
+    activeType = null;
+    chatContainer.innerHTML = '';
+}
 
-                var data = await response.json();
-                typingDiv.innerHTML = '';
-                typingDiv.textContent = data.reply || 'Sorry, something went wrong.';
-                typingDiv.classList.remove('typing');
-            } catch (err) {
-                typingDiv.innerHTML = '';
-                typingDiv.textContent = 'Error: Could not reach the AI service. Please try again.';
-                typingDiv.classList.remove('typing');
-            }
+function addMessage(text, role, isHtml) {
+    var div = document.createElement('div');
+    div.className = 'message ' + role;
+    if (isHtml) { div.innerHTML = text; } else { div.textContent = text; }
+    chatContainer.appendChild(div);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    return div;
+}
 
-            sendBtn.disabled = false;
-            promptInput.focus();
-        }
-    </script>
+promptInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); generate(); }
+});
+
+async function generate() {
+    var userPrompt = promptInput.value.trim();
+    if (!userPrompt || !activeType) return;
+
+    addMessage(userPrompt, 'user');
+    promptInput.value = '';
+    sendBtn.disabled = true;
+
+    if (activeType.id === 'image') {
+        await generateImage(userPrompt);
+    } else {
+        await generateText(userPrompt);
+    }
+
+    sendBtn.disabled = false;
+    promptInput.focus();
+}
+
+async function generateText(userPrompt) {
+    var typingDiv = addMessage('', 'ai', true);
+    typingDiv.innerHTML = '<span class="dot-pulse">Generating</span>';
+
+    try {
+        var response = await fetch('https://ai-content-generator-noxolo-441.netlify.app/.netlify/functions/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: userPrompt, systemPrompt: activeType.system })
+        });
+        var data = await response.json();
+        typingDiv.innerHTML = '';
+        typingDiv.textContent = data.reply || 'Sorry, something went wrong.';
+    } catch (err) {
+        typingDiv.innerHTML = '';
+        typingDiv.textContent = 'Error: Could not reach the AI service. Please try again.';
+    }
+}
+
+async function generateImage(userPrompt) {
+    var msgDiv = addMessage('', 'ai', true);
+    msgDiv.innerHTML = '<span class="dot-pulse">Generating image</span>';
+
+    var seed = Math.floor(Math.random() * 999999);
+    var imageUrl = 'https://image.pollinations.ai/prompt/' +
+        encodeURIComponent(userPrompt) +
+        '?width=768&height=512&nologo=true&seed=' + seed;
+
+    var img = new Image();
+    img.onload = function() {
+        msgDiv.innerHTML = '';
+        var imgEl = document.createElement('img');
+        imgEl.src = imageUrl;
+        imgEl.alt = userPrompt;
+        msgDiv.appendChild(imgEl);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        sendBtn.disabled = false;
+        promptInput.focus();
+    };
+    img.onerror = function() {
+        msgDiv.innerHTML = '';
+        msgDiv.textContent = 'Could not generate image. Please try a different description.';
+        sendBtn.disabled = false;
+        promptInput.focus();
+    };
+    img.src = imageUrl;
+}
+</script>
 </body>
 </html>

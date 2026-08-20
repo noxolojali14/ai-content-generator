@@ -29,7 +29,7 @@ async function tryModel(model, prompt, apiKey) {
         body: JSON.stringify({
             model: model,
             messages: [
-                { role: 'system', content: 'You are a helpful AI content generator. You create high-quality text content based on user prompts. Be creative, detailed, and helpful. Respond directly without any internal thinking or reasoning tags.' },
+                { role: 'system', content: system + ' Respond directly without any internal thinking or reasoning tags.' },
                 { role: 'user', content: prompt }
             ],
             max_tokens: 1024
@@ -58,7 +58,8 @@ exports.handler = async (event) => {
     }
 
     try {
-        const { prompt } = JSON.parse(event.body);
+        const { prompt, systemPrompt } = JSON.parse(event.body);
+        const system = systemPrompt || 'You are a helpful AI content generator. Be creative, detailed, and helpful.';
         const apiKey = process.env.OPENROUTER_API_KEY;
 
         const models = await getFreeModels(apiKey);
