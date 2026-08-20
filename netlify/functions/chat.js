@@ -15,7 +15,7 @@ exports.handler = async (event) => {
                 'X-Title': 'AI Content Generator'
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-exp:free',
+                model: 'deepseek/deepseek-r1-0528:free',
                 messages: [
                     { role: 'system', content: 'You are a helpful AI content generator. You create high-quality text content based on user prompts. Be creative, detailed, and helpful.' },
                     { role: 'user', content: prompt }
