@@ -145,7 +145,7 @@
             var typingDiv = addMessage('<span class="dot-pulse">Thinking</span>', 'ai typing', true);
 
             try {
-                var response = await fetch('/.netlify/functions/chat', {
+                var response = await fetch('https://ai-content-generator-noxolo-441.netlify.app/.netlify/functions/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: prompt })

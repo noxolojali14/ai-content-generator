@@ -1,13 +1,21 @@
-const FREE_MODELS = [
-    'qwen/qwen3-8b:free',
-    'google/gemma-3-1b-it:free',
-    'google/gemma-3-4b-it:free',
-    'meta-llama/llama-3.1-8b-instruct:free',
-    'mistralai/mistral-small-3.1-24b-instruct:free',
-    'deepseek/deepseek-r1-0528:free',
-    'microsoft/phi-4-reasoning:free',
-    'google/gemini-2.0-flash-exp:free'
-];
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+};
+
+async function getFreeModels(apiKey) {
+    const res = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: { 'Authorization': 'Bearer ' + apiKey }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.data || [])
+        .filter(m => m.pricing && m.pricing.completion === '0' && m.pricing.prompt === '0')
+        .map(m => m.id)
+        .slice(0, 10);
+}
 
 async function tryModel(model, prompt, apiKey) {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -15,7 +23,7 @@ async function tryModel(model, prompt, apiKey) {
         headers: {
             'Authorization': 'Bearer ' + apiKey,
             'Content-Type': 'application/json',
-            'HTTP-Referer': 'https://ai-content-generator-noxolo-441.netlify.app',
+            'HTTP-Referer': 'https://noxolojali14.github.io/ai-content-generator',
             'X-Title': 'AI Content Generator'
         },
         body: JSON.stringify({
@@ -29,27 +37,22 @@ async function tryModel(model, prompt, apiKey) {
     });
 
     const text = await res.text();
-    console.log('Model:', model, 'Status:', res.status);
-
     var data;
     try { data = JSON.parse(text); } catch(e) { return null; }
-
-    if (data.error) {
-        console.log('Model error:', model, data.error.message);
-        return null;
-    }
+    if (data.error) { console.log('Model error:', model, data.error.message); return null; }
 
     if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
         var content = data.choices[0].message.content;
-        // Strip thinking tags if present
         content = content.replace(/<think>[\s\S]*?<\/think>\s*/g, '').trim();
-        return content;
+        return content || null;
     }
-
     return null;
 }
 
 exports.handler = async (event) => {
+    if (event.httpMethod === 'OPTIONS') {
+        return { statusCode: 204, headers: CORS_HEADERS, body: '' };
+    }
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
@@ -58,33 +61,36 @@ exports.handler = async (event) => {
         const { prompt } = JSON.parse(event.body);
         const apiKey = process.env.OPENROUTER_API_KEY;
 
-        // Try each free model until one works
-        for (var i = 0; i < FREE_MODELS.length; i++) {
+        const models = await getFreeModels(apiKey);
+        console.log('Free models found:', models.length, models);
+
+        for (var i = 0; i < models.length; i++) {
             try {
-                var result = await tryModel(FREE_MODELS[i], prompt, apiKey);
+                var result = await tryModel(models[i], prompt, apiKey);
                 if (result) {
                     return {
                         statusCode: 200,
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: CORS_HEADERS,
                         body: JSON.stringify({ reply: result })
                     };
                 }
             } catch (e) {
-                console.log('Model threw:', FREE_MODELS[i], e.message);
-                continue;
+                console.log('Model threw:', models[i], e.message);
             }
         }
 
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reply: 'All AI models are currently busy. Please try again in a moment.' })
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ reply: models.length === 0
+                ? 'Could not load model list. Please try again.'
+                : 'All AI models are currently busy. Please try again in a moment.'
+            })
         };
     } catch (error) {
-        console.log('Function error:', error.message);
         return {
             statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
+            headers: CORS_HEADERS,
             body: JSON.stringify({ reply: 'Error: ' + error.message })
         };
     }
